@@ -32,13 +32,41 @@ public class StdServiceIpml implements StdService {
 		String setDate = vali.setDate();
 		s.setDateOfJoing(setDate);
 		
-		//
+		//encript
+		//phone nb
+		String phNo = s.getPhNo();	
+		String encPhNo = vali.encrypt(phNo);
+		s.setPhNo(encPhNo);
 		
+		//password
+		String passwared = s.getPasswared();
+		String ecnPassword = vali.encrypt(passwared);
+		s.setPasswared(ecnPassword);
 		Student save = repo.save(s);
 
 		System.out.println(save);
 		return s;
 
+	}
+
+	@Override
+	public Student getById(String id) {
+		Student byId = repo.findById(id).get();
+		
+		System.out.println("Encript DATA : "+byId);
+		
+		//decript
+		String phNo = byId.getPhNo();
+		String decPhNo = vali.decrypt(phNo);
+		byId.setPhNo(decPhNo);
+		
+		String password = byId.getPasswared();
+		 String decPassword = vali.decrypt(password);
+		byId.setPasswared(decPassword);
+		
+		System.out.println("Decript DATA : "+byId);
+		
+		return byId;
 	}
 
 }

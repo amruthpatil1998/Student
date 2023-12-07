@@ -1,8 +1,14 @@
 package com.student.pkg.StdUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Random;
-
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import org.springframework.stereotype.Component;
 import com.student.pkg.entity.Student;
 
@@ -11,6 +17,9 @@ import com.student.pkg.entity.Student;
 public class StdUtil {
 
 	LocalDateTime ltd=LocalDateTime.now();
+	private static byte[] key;
+	private static SecretKeySpec secretKey;
+	private String keyField = "AMMU123!@#";
 
 	public Boolean validate(Student s) {
 		
@@ -70,5 +79,45 @@ public class StdUtil {
 		return valueOf;
 	}
 
+	private void setKey(String myKey) {
+		MessageDigest sha = null;
+		try {
+			key = myKey.getBytes("UTF-8");
+			sha = MessageDigest.getInstance("SHA-1");
+			key = sha.digest(key);
+			key = Arrays.copyOf(key, 16);
+			secretKey = new SecretKeySpec(key, "AES");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public String decrypt(String strToDecrypt) {
+		System.out.println("KEYFIELD : "+keyField);
+		try {
+			setKey(keyField);
+			Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+			cipher.init(Cipher.DECRYPT_MODE, secretKey);
+			return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
+		} catch (Exception e) {
+			System.out.println("Error while decrypting: " + e.toString());
+		}
+		return null;
+	}
+
+	public String encrypt(String strToEncrypt) {
+		System.out.println("KEYFIELD : "+keyField);
+		try {
+			setKey(keyField);
+			Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
+		} catch (Exception e) {
+			System.out.println("Error while encrypting: " + e.toString());
+		}
+		return null;
+	}
+	
 }
